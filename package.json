@@ -1,0 +1,17 @@
+{
+  "name": "pizza-api",
+  "version": "1.0.0",
+  "description": "json api for pizza orders",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "mongoose": "^5.12.13",
+    "morgan": "^1.10.0"
+  }
+}
