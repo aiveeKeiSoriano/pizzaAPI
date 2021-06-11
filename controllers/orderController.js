@@ -1,38 +1,51 @@
 const mongoose = require("mongoose");
 var ObjectId = mongoose.Types.ObjectId;
-const Order = require("../models/order")
-const Pizza = require("../models/pizza")
+const OrderItem = require("../models/orderItem");
+const Order = require("../models/order");
+const Pizza = require("../models/pizza");
 
 const listAllOrders = async () => {
-    let orders = await Order.find({})
-    return orders
-}
+  let orders = await Order.find({})
+    .populate("items")
+    .populate({ path: "items", populate: { path: "pizza" } });
+  return orders;
+};
 
 const findOrder = async (input) => {
-    if (!ObjectId.isValid(input)) return {message: "Order not found"}
-    let id = mongoose.mongo.ObjectID(input)
-    let order = await Order.findOne({ _id: id })
-    if (!order) {
-        return {message: "Order not found"}
-    }
-    return order
-}
+  if (!ObjectId.isValid(input)) return { message: "Order not found" };
+  let id = mongoose.mongo.ObjectID(input);
+  let order = await Order.findOne({ _id: id }).populate({
+    path: "items",
+    populate: { path: "pizza" },
+  });
+  if (!order) {
+    return { message: "Order not found" };
+  }
+  return order;
+};
 
-const addNewOrder = async ({pizza, quantity}) => {
-    let findPizza = Pizza.findOne({ name: pizza })
-    if (!findPizza) return { message: "There's no such Pizza" }
-    let newOrder = new Order({ pizza: findPizza, quantity: quantity })
-    try {
-        newOrder.save()
-        return {message: "Added Successfully"}
+const addNewOrder = async (list) => {
+  let orders = [];
+  for (let order of list) {
+    let pizza = await Pizza.findOne({ name: order.pizza });
+    if (!pizza) {
+      return { message: "There's no " + order.pizza + " Pizza" };
     }
-    catch (e) {
-        return {Error: e.message}
-    }
-}
+    orders.push({ pizza: pizza, quantity: order.quantity });
+  }
+  try {
+    let response = await OrderItem.insertMany(orders);
+    let order = new Order({ items: response });
+    await order.save();
+    return order;
+  } catch (e) {
+    console.log(e);
+    return { message: e.message };
+  }
+};
 
 module.exports = {
-    listAllOrders,
-    findOrder,
-    addNewOrder
-}
+  listAllOrders,
+  findOrder,
+  addNewOrder,
+};

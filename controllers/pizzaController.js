@@ -1,31 +1,25 @@
 const mongoose = require("mongoose");
-const Pizza = require("../models/pizza")
+const Pizza = require("../models/pizza");
 
 const listPizza = async (ingredients) => {
-    let pizzas = await Pizza.find()
-    let checkPizza = (pizza) => {
-        for (let i = 0; i < ingredients.length; i++) {
-            if (!pizza.ingredients.includes(ingredients[i])) {
-                return false
-            }
-        }
-        return true
+    if (ingredients.length === 0) {
+        return await Pizza.find()
     }
-    return pizzas.filter(pizza => checkPizza(pizza))
-}
+  const pizzas = await Pizza.find({ ingredients: { $all: [...ingredients] } });
+  return pizzas;
+};
 
 const addNewPizza = async (pizza) => {
-    let newPizza = new Pizza(pizza)
-    try {
-        newPizza.save()
-        return {message: "Added Successfully"}
-    }
-    catch (e) {
-        return {Error: e.message}
-    }
-}
+  let newPizza = new Pizza(pizza);
+  try {
+    await newPizza.save();
+    return { message: "Added Successfully" };
+  } catch (e) {
+    return { Error: e.message };
+  }
+};
 
 module.exports = {
-    listPizza,
-    addNewPizza
-}
+  listPizza,
+  addNewPizza,
+};
